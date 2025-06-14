@@ -26,6 +26,7 @@ CREATE OR REPLACE PROCEDURE core.increment_by_one(x NUMBER)
   IMPORTS=('/module-add/add.py')
   HANDLER='add.increment_by_one_fn';
 
+
 -- 4. Grant appropriate privileges over these objects to your application roles.
 GRANT USAGE ON FUNCTION core.add(NUMBER, NUMBER) TO APPLICATION ROLE app_public;
 GRANT USAGE ON PROCEDURE core.increment_by_one(NUMBER) TO APPLICATION ROLE app_public;

@@ -10,4 +10,15 @@ artifacts:
   setup_script: setup_script.sql
   readme: README.md
   default_streamlit: core.ui
-  extension_code: true
+  extension_code: true  
+
+references:
+  - docs_internal_stage:
+      description: "Reference to the documents table in the search application."
+      object_type: stage
+      privileges:
+      - read
+      register_callback: ui.run
+      label: "Documentation Staging Database for Search"
+      
+
