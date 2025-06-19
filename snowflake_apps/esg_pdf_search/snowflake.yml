@@ -3,7 +3,8 @@ definition_version: 2
 entities:
   pkg:
     type: application package
-    identifier: <% fn.concat_ids('esg_pdf_search_pkg', ctx.env.suffix) %>
+    identifier: <% fn.concat_ids(ctx.env.app_name) %>
+    
     artifacts:
       - src: app/*
         dest: ./
@@ -16,10 +17,12 @@ entities:
     type: application
     from:
       target: pkg
-    identifier: <% fn.concat_ids('esg_pdf_search_pkg' , ctx.env.suffix) %>
+    identifier: <% fn.concat_ids(ctx.env.app_name) %>
+    debug: true
 
 env:
   suffix: <% fn.concat_ids('_', fn.sanitize_id(fn.get_username('unknown_user')) | lower) %>
+  app_name: 'esg_pdf_search_pkg'
 
 # If you added any sql scripts under scripts/, you should add the following snippet after `artifacts` under `entities.pkg`:
 #  meta:

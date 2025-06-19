@@ -123,7 +123,7 @@ def complete(myquestion):
     df_response = session.sql(cmd, params=[st.session_state.model_name, prompt]).collect()
     return df_response, relative_paths
 
-def worker():
+def main():
     
     st.title(f":speech_balloon: Chat Document Assistant with Snowflake Cortex")
     st.write("This is the list of documents you already have and that will be used to answer your questions:")
@@ -153,3 +153,6 @@ def worker():
         
                     display_url = f"Doc: [{path}]({url_link})"
                     st.sidebar.markdown(display_url)
+                
+if __name__ == "__main__":
+    main()
