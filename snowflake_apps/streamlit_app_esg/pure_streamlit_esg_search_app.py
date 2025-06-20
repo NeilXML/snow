@@ -9,7 +9,7 @@ import json
 pd.set_option("max_colwidth",None)
 
 ### Default Values
-NUM_CHUNKS = 3 # Num-chunks provided as context. Play with this to check how it affects your accuracy
+NUM_CHUNKS = 100 # Num-chunks provided as context. Play with this to check how it affects your accuracy
 
 # service parameters
 CORTEX_SEARCH_DATABASE = "CC_QUICKSTART_CORTEX_SEARCH_DOCS"
@@ -114,20 +114,18 @@ def create_prompt (myquestion):
     return prompt, relative_paths
 
 def complete(myquestion):
-
     prompt, relative_paths =create_prompt (myquestion)
     cmd = """
             select snowflake.cortex.complete(?, ?) as response
           """
-    
     df_response = session.sql(cmd, params=[st.session_state.model_name, prompt]).collect()
     return df_response, relative_paths
 
+
 def main():
-    
     st.title(f":speech_balloon: Chat Document Assistant with Snowflake Cortex")
     st.write("This is the list of documents you already have and that will be used to answer your questions:")
-    docs_available = session.sql("ls @docs").collect()
+    docs_available = session.sql("ls @CC_QUICKSTART_CORTEX_SEARCH_DOCS.DATA.DOCS").collect()
     list_docs = []
     for doc in docs_available:
         list_docs.append(doc["name"])
@@ -147,7 +145,7 @@ def main():
         if relative_paths != "None":
             with st.sidebar.expander("Related Documents"):
                 for path in relative_paths:
-                    cmd2 = f"select GET_PRESIGNED_URL(@docs, '{path}', 360) as URL_LINK from directory(@docs)"
+                    cmd2 = f"select GET_PRESIGNED_URL(@CC_QUICKSTART_CORTEX_SEARCH_DOCS.DATA.DOCS, '{path}', 360) as URL_LINK from directory(@CC_QUICKSTART_CORTEX_SEARCH_DOCS.DATA.DOCS)"
                     df_url_link = session.sql(cmd2).to_pandas()
                     url_link = df_url_link._get_value(0,'URL_LINK')
         

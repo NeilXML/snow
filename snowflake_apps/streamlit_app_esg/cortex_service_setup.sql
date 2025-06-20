@@ -1,7 +1,7 @@
-CREATE DATABASE CC_QUICKSTART_CORTEX_SEARCH_DOCS;
-CREATE SCHEMA DATA;
+CREATE DATABASE IF NOT EXISTS CC_QUICKSTART_CORTEX_SEARCH_DOCS;
+CREATE SCHEMA IF NOT EXISTS DATA;
 
-CREATE SCHEMA APPS;
+CREATE SCHEMA IF NOT EXISTS APPS;
 
 
 use database cc_quickstart_cortex_search_docs;
@@ -16,6 +16,16 @@ ls @docs;
 ls @CC_QUICKSTART_CORTEX_SEARCH_DOCS.DATA.DOCS;
 describe stage CC_QUICKSTART_CORTEX_SEARCH_DOCS.DATA.DOCS;
 
+create or alter TABLE DOCS_CHUNKS_TABLE ( 
+    RELATIVE_PATH VARCHAR(16777216), -- Relative path to the PDF file
+    SIZE NUMBER(38,0), -- Size of the PDF
+    FILE_URL VARCHAR(16777216), -- URL for the PDF
+    SCOPED_FILE_URL VARCHAR(16777216), -- Scoped url (you can choose which one to keep depending on your use case)
+    CHUNK VARCHAR(16777216), -- Piece of text
+    CHUNK_INDEX INTEGER, -- Index for the text
+    CATEGORY VARCHAR(16777216), -- Will hold the document category to enable filtering
+    COMPANY VARCHAR(16777216)
+);
 
 CREATE or replace TEMPORARY table RAW_TEXT AS
 SELECT 
@@ -31,18 +41,8 @@ SELECT
         ) AS EXTRACTED_LAYOUT 
 FROM 
     DIRECTORY('@docs');
+WHERE RELATIVE_PATH not in (select distinct RELATIVE_PATH from DOCS_CHUNKS_TABLE)
 
-
-create or replace TABLE DOCS_CHUNKS_TABLE ( 
-    RELATIVE_PATH VARCHAR(16777216), -- Relative path to the PDF file
-    SIZE NUMBER(38,0), -- Size of the PDF
-    FILE_URL VARCHAR(16777216), -- URL for the PDF
-    SCOPED_FILE_URL VARCHAR(16777216), -- Scoped url (you can choose which one to keep depending on your use case)
-    CHUNK VARCHAR(16777216), -- Piece of text
-    CHUNK_INDEX INTEGER, -- Index for the text
-    CATEGORY VARCHAR(16777216), -- Will hold the document category to enable filtering
-    COMPANY VARCHAR(16777216)
-);
 
 insert into docs_chunks_table (relative_path, size, file_url,
                             scoped_file_url, chunk, chunk_index)
@@ -52,8 +52,7 @@ insert into docs_chunks_table (relative_path, size, file_url,
             scoped_file_url,
             c.value::TEXT as chunk,
             c.INDEX::INTEGER as chunk_index         
-    from 
-        raw_text,
+    from raw_text,
         LATERAL FLATTEN( input => SNOWFLAKE.CORTEX.SPLIT_TEXT_RECURSIVE_CHARACTER (
               EXTRACTED_LAYOUT,
               'markdown',
@@ -62,6 +61,7 @@ insert into docs_chunks_table (relative_path, size, file_url,
               ['\n\n', '\n', ' ', '']
            )) c;
 
+-- select * from docs_chunks_table;
 
 CREATE OR REPLACE TEMPORARY TABLE docs_categories AS WITH unique_documents AS (
   SELECT
@@ -95,8 +95,6 @@ SELECT
   *
 FROM
   docs_category_cte;
-
-select * from docs_categories;
 
 
 update docs_chunks_table 
