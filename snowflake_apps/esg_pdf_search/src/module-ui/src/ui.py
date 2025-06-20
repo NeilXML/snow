@@ -7,7 +7,18 @@ from snowflake.snowpark.context import get_active_session
 from snowflake.core import Root
 import json
 
-session = get_active_session()
+connection_parameters = {
+    "user": "nedasi",
+    "password": "!Working on 77th Tonight!",
+    "account": "wxthvsy-rob57157"
+}
+local_dev = True
+
+if local_dev:
+    session = Session.builder.configs(connection_parameters).create()
+else:
+    session = get_active_session()
+
 root = Root(session)
 
 
@@ -32,7 +43,6 @@ def get_docs_stage() -> str:
     docs_stage_ref = permissions.get_detailed_reference_associations('docs_internal_stage')
     if docs_stage_ref is None:
         raise ValueError("The 'docs_internal_stage' reference is not available. Please check your permissions.") 
-
     return -f'@{docs_stage_ref["database"]}.{docs_stage_ref["schema"]}.{docs_stage_ref["name"]}'
 
 

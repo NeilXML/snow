@@ -40,8 +40,8 @@ SELECT
             {'mode': 'LAYOUT'} ):content
         ) AS EXTRACTED_LAYOUT 
 FROM 
-    DIRECTORY('@docs');
-WHERE RELATIVE_PATH not in (select distinct RELATIVE_PATH from DOCS_CHUNKS_TABLE)
+    DIRECTORY('@docs')
+WHERE RELATIVE_PATH not in (select distinct RELATIVE_PATH from DOCS_CHUNKS_TABLE);
 
 
 insert into docs_chunks_table (relative_path, size, file_url,
