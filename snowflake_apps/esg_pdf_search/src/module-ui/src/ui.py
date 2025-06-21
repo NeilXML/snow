@@ -1,23 +1,27 @@
 import pandas as pd
 import streamlit as st
 from snowflake.snowpark import Session
-import snowflake.permissions as permissions
+
 # from snowflake.snowpark.functions import call_udf, col
 from snowflake.snowpark.context import get_active_session
 from snowflake.core import Root
 import json
+import logging
+
+logger = logging.getLogger("mylog")
 
 connection_parameters = {
     "user": "nedasi",
     "password": "!Working on 77th Tonight!",
     "account": "wxthvsy-rob57157"
 }
-local_dev = True
+local_dev = False
 
 if local_dev:
     session = Session.builder.configs(connection_parameters).create()
 else:
     session = get_active_session()
+    import snowflake.permissions as permissions
 
 root = Root(session)
 
@@ -40,10 +44,17 @@ COLUMNS = [
 
 
 def get_docs_stage() -> str:
-    docs_stage_ref = permissions.get_detailed_reference_associations('docs_internal_stage')
+    if local_dev:
+        docs_stage_ref = {
+            "database": "CC_QUICKSTART_CORTEX_SEARCH_DOCS",
+            "schema": "DATA",
+            "name": "docs"
+        }
+    else:
+        docs_stage_ref = permissions.get_detailed_reference_associations('docs_internal_stage')
     if docs_stage_ref is None:
         raise ValueError("The 'docs_internal_stage' reference is not available. Please check your permissions.") 
-    return -f'@{docs_stage_ref["database"]}.{docs_stage_ref["schema"]}.{docs_stage_ref["name"]}'
+    return f'@{docs_stage_ref["database"]}.{docs_stage_ref["schema"]}.{docs_stage_ref["name"]}'
 
 
 # Functions
@@ -161,10 +172,12 @@ def run():
     # Try mount internal stage    
     # CC_QUICKSTART_CORTEX_SEARCH_DOCS.DATA.DOCS
     reports_stage = get_docs_stage()
+    logger.info(f"Using reports stage: {reports_stage}")
     pd.set_option("max_colwidth", None)
     st.title(f":speech_balloon: Chat Document Assistant with Snowflake Cortex")
     st.write("This is the list of documents you already have and that will be used to answer your questions:")
-    docs_available = session.sql(f'ls {reports_stage}').collect()
+    # root.databases["<database>"].schemas["<schema>"].stages.create(my_stage)
+    docs_available = session.sql(f'ls {reports_stage}.docs').collect()
 
     list_docs = []
     for doc in docs_available:
@@ -193,6 +206,5 @@ def run():
 
 
 if __name__ == '__main__':
-    pass
-    # run()
-    # st.write("This is the list of documents you already have and that will be used to answer your questions:")
+   run()
+   # st.write("This is the list of documents you already have and that will be used to answer your questions:")

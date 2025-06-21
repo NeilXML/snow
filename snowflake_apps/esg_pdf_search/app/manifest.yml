@@ -18,7 +18,10 @@ references:
       object_type: stage
       privileges:
       - read
-      register_callback: ui.run
-      label: "Documentation Staging Database for Search"
+      register_callback: config.REGISTER_SINGLE_REFERENCE
+      label: "Docs Staging DB"
       
-
+privileges:
+  - READ SESSION:
+      description: "To allow Streamlit to access some context functions"
+    

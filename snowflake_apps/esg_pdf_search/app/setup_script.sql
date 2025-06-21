@@ -41,3 +41,29 @@ CREATE OR REPLACE STREAMLIT core.ui
 GRANT USAGE ON STREAMLIT core.ui TO APPLICATION ROLE app_public;
 
 -- A detailed explanation can be found at https://docs.snowflake.com/en/developer-guide/native-apps/adding-streamlit
+
+-- Neil ref https://docs.snowflake.com/en/developer-guide/native-apps/requesting-refs#label-native-apps-reference-supported-functions
+-- CREATE or replace ROLE app_admin;
+CREATE OR ALTER VERSIONED SCHEMA config;
+CREATE APPLICATION ROLE if not exists app_admin;
+GRANT USAGE ON SCHEMA config TO APPLICATION ROLE app_admin;
+CREATE or alter PROCEDURE CONFIG.REGISTER_SINGLE_REFERENCE(ref_name STRING, operation STRING, ref_or_alias STRING)
+  RETURNS STRING
+  LANGUAGE SQL
+  AS $$
+    BEGIN
+      CASE (operation)
+        WHEN 'ADD' THEN
+          SELECT SYSTEM$SET_REFERENCE(:ref_name, :ref_or_alias);
+        WHEN 'REMOVE' THEN
+          SELECT SYSTEM$REMOVE_REFERENCE(:ref_name, :ref_or_alias);
+        WHEN 'CLEAR' THEN
+          SELECT SYSTEM$REMOVE_ALL_REFERENCES(:ref_name);
+      ELSE
+        RETURN 'unknown operation: ' || operation;
+      END CASE;
+      RETURN NULL;
+    END;
+  $$;
+
+GRANT USAGE ON PROCEDURE CONFIG.REGISTER_SINGLE_REFERENCE(STRING, STRING, STRING) TO APPLICATION ROLE app_admin;
