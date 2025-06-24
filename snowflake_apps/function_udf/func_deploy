@@ -1,0 +1,61 @@
+import subprocess
+import shlex
+from snowflake.snowpark import Session
+from snowflake.snowpark.context import get_active_session
+import os
+from pathlib import Path
+
+# import snowflake.permissions as permissions
+
+# API Ref: https://docs.snowflake.com/developer-guide/snowpark/reference/python/latest/snowpark/index
+
+app_name = "ESG PDF Search"
+app_package_name = "esg_pdf_search_pkg_u101099"
+connection_parameters = {
+    "user": "nedasi",
+    "password": "!Working on 77th Tonight!",
+    "account": "wxthvsy-rob57157"
+}
+
+# pip install snowflake-native-apps-permission
+# pip install snowflake-snowpark-python
+# Deploy the 'esg_pdf_search' app to Snowflake using the Snowflake CLI
+def run_snow_cli(cmd_args: str):
+    try:
+        args = shlex.split(cmd_args)
+        result = subprocess.run(
+            args,
+            check=True,
+            capture_output=True,
+            text=True,
+            cwd="./"
+        )
+        print("Deployment output:\n", result.stdout)
+    except subprocess.CalledProcessError as e:
+        print("Deployment failed:\n", e.stderr)
+
+
+os.chdir(Path(__file__).parent)
+print(os.curdir)
+
+#    print(f'snow sql -c SF_TRIAL_7 -q \"{sql}\" --verbose')
+#    run_snow_cli(f'snow sql -c SF_TRIAL_7 -q \"{sql}\" --verbose')
+
+sql = []
+sql.append('CREATE DATABASE if not exists SF_FIN_DB FROM SHARE HFB60520.SNOWFLAKE_MANAGED$PUBLIC_AWS_US_WEST_2.CYBERSYN_FINANCIAL_DATA_PACKAGE_SHARE;')
+for s in sql:
+    print(f'snow sql -c SF_TRIAL_7 -q \"{s}\" --verbose')
+    run_snow_cli(f'snow sql -c SF_TRIAL_7 -q \"{s}\" --verbose')
+
+
+
+
+
+if False:
+    sql = []
+    sql += ['snow snowpark build --connection SF_TRIAL_7 --verbose']
+    sql += ['snow snowpark deploy --database funcs_db --schema funcs_schema --replace --connection SF_TRIAL_7 --verbose']
+    for s in sql:
+        print(s)
+        run_snow_cli(s)
+
